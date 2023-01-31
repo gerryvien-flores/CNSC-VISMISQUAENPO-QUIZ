@@ -6,9 +6,9 @@ def collectAns(num, answer):
 
 def showQuiz(number):
 	with open("sauce/quiz.txt", "r") as Quiz:
-		for question in Quiz:
-			if str(number) in question and number < number + 1:
-				print(question)
+		myLines = Quiz.readlines()[number - 1]
+		print(myLines)
+
 	with open("sauce/choices.txt", "r") as choices:
 		lines = choices.readlines()[number - 1]
 		for line in lines.split("~"):
@@ -26,14 +26,31 @@ def tallyScore():
 
 	return score
 
-def generateResult(name, yrblk, date, score):
+
+def tallyMistakes():
+	mistakes = []
+	with open("sauce/Answer.txt", "r") as sheet:
+		answers = sheet.readlines()
+
+	with open("sauce/key.txt") as correction:
+		for lines in correction:
+			if lines not in answers:
+				mistakes.append(lines[0:2].replace('.', ' '))
+
+	return mistakes
+
+def generateResult(name, yrblk, date, score, mistake):
 	with open("sauce/Answer.txt", "r") as sheet:
 		lines = sheet.readlines()
 
-	with open(f"{name}.txt", "w") as result:
+	with open(f"Result/{name}.txt", "w") as result:
 		result.write(f"Name: {name}\nCourse, Year and Block: {yrblk}\nDate: {date}\nScore: {score}\n\n")
 		for ans in lines:
 			result.write(f"{ans}")
+
+		result.write("\nMistakes:\n")
+		for miss in mistake:
+			result.write(f"{miss.strip()}\n")
 
 	print("Report had been generated.")
 
@@ -53,9 +70,9 @@ if __name__ == "__main__":
 				C - Quit
 		''')
 	while True:
-		query = input("Choice: ")
+		query = input("Choice: ").casefold()
 
-		if query == "A":
+		if query == "a":
 			answeredNums = []
 			answered = 0
 			studName = input('Name: ')
@@ -74,21 +91,21 @@ if __name__ == "__main__":
 					else:
 						print("You've already answered this number.")
 
-					if answered == 5:
-						generateResult(studName, yearBlk, dates, tallyScore())
+					if answered == 20:
+						generateResult(studName, yearBlk, dates, tallyScore(), tallyMistakes())
 						break
 
 				except (ValueError, IndexError):
 					print("Invalid Option")
-		elif query == "B":
+		elif query == "b":
 			try:
 				fileName = input("Please write your name: ") + ".txt"
-				with open(fileName, "r") as resultFile:
+				with open(f"Result/{fileName}", "r") as resultFile:
 					for data in resultFile:
 						print(data)
 			except FileNotFoundError:
 				print("Cannot find test record.")
-		elif query == "C":
+		elif query == "c":
 			print("Thank you for using the application.")
 			break
 		else:
